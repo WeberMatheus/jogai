@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as AuthenticatedMinhasSolicitacoesRouteImport } from './routes/_authenticated/minhas-solicitacoes'
+import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as EspacosIdRouteImport } from './routes/espacos.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const AuthenticatedMinhasSolicitacoesRoute =
     path: '/minhas-solicitacoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const EspacosIdRoute = EspacosIdRouteImport.update({
   id: '/espacos/$id',
   path: '/espacos/$id',
@@ -45,12 +51,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
+  '/painel': typeof AuthenticatedPainelRoute
   '/espacos/$id': typeof EspacosIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
+  '/painel': typeof AuthenticatedPainelRoute
   '/espacos/$id': typeof EspacosIdRoute
 }
 export interface FileRoutesById {
@@ -59,19 +67,22 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/_authenticated/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
+  '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/espacos/$id': typeof EspacosIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/entrar' | '/minhas-solicitacoes' | '/espacos/$id'
+  fullPaths:
+    '/' | '/entrar' | '/minhas-solicitacoes' | '/painel' | '/espacos/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/entrar' | '/minhas-solicitacoes' | '/espacos/$id'
+  to: '/' | '/entrar' | '/minhas-solicitacoes' | '/painel' | '/espacos/$id'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/entrar'
     | '/_authenticated/minhas-solicitacoes'
+    | '/_authenticated/painel'
     | '/espacos/$id'
   fileRoutesById: FileRoutesById
 }
@@ -112,6 +123,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMinhasSolicitacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/painel': {
+      id: '/_authenticated/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof AuthenticatedPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/espacos/$id': {
       id: '/espacos/$id'
       path: '/espacos/$id'
@@ -124,10 +142,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedMinhasSolicitacoesRoute: typeof AuthenticatedMinhasSolicitacoesRoute
+  AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMinhasSolicitacoesRoute: AuthenticatedMinhasSolicitacoesRoute,
+  AuthenticatedPainelRoute: AuthenticatedPainelRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
