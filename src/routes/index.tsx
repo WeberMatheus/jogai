@@ -75,7 +75,7 @@ function Index() {
         <aside className="space-y-6 rounded-3xl border bg-card p-5 md:sticky md:top-20 md:self-start">
           <div>
             <p className="mb-3 text-sm font-semibold">Preço máximo: {formatBRL(precoMax)}/h</p>
-            <Slider min={20} max={300} step={10} value={[precoMax]} onValueChange={([v]) => setPrecoMax(v)} />
+            <Slider min={20} max={300} step={10} value={[precoMax]} onValueChange={([v]) => setPrecoMax(v ?? 300)} />
           </div>
           <div>
             <p className="mb-2 text-sm font-semibold">Comodidades</p>

@@ -42,7 +42,7 @@ export async function resolvePhotos(paths: string[]): Promise<string[]> {
   let signed: Record<string, string> = {};
   if (stored.length) {
     const { data } = await supabase.storage.from("space-photos").createSignedUrls(stored, 60 * 60);
-    signed = Object.fromEntries((data ?? []).map((d) => [d.path ?? "", d.signedUrl]));
+    signed = Object.fromEntries((data ?? []).filter((d) => d.path && d.signedUrl).map((d) => [d.path as string, d.signedUrl as string]));
   }
   return paths.map((p) => signed[p] ?? p).filter(Boolean);
 }

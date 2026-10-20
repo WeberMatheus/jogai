@@ -68,7 +68,7 @@ function Painel() {
 
   async function setStatus(id: string, status: "confirmada" | "recusada") {
     const { error } = await supabase.from("booking_requests").update({ status }).eq("id", id);
-    if (error) return toast.error("Não foi possível atualizar.");
+    if (error) return void toast.error("Não foi possível atualizar.");
     toast.success(status === "confirmada" ? "Solicitação aceita" : "Solicitação recusada");
     qc.invalidateQueries({ queryKey: ["owner-requests"] });
   }
@@ -163,14 +163,14 @@ function SpaceForm({ initial, onDone }: { initial: Omit<Space, "id"> & { id?: st
   async function save(e: React.FormEvent) {
     e.preventDefault();
     const p = spaceSchema.safeParse(f);
-    if (!p.success) return toast.error(p.error.issues[0].message);
+    if (!p.success) return void toast.error(p.error.issues[0]?.message ?? "Dados inválidos");
     setSaving(true);
     const payload = { ...p.data, fotos: f.fotos };
     const { error } = f.id
       ? await supabase.from("spaces").update(payload).eq("id", f.id)
       : await supabase.from("spaces").insert({ ...payload, owner_id: user!.id });
     setSaving(false);
-    if (error) return toast.error("Não foi possível salvar.");
+    if (error) return void toast.error("Não foi possível salvar.");
     toast.success("Espaço salvo");
     onDone();
   }

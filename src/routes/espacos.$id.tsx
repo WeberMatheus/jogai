@@ -62,7 +62,7 @@ function SpacePage() {
       return;
     }
     const parsed = bookingSchema.safeParse(form);
-    if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+    if (!parsed.success) return void toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos");
     setSending(true);
     const { error } = await supabase.from("booking_requests").insert({
       ...parsed.data,
@@ -71,7 +71,7 @@ function SpacePage() {
       status: INITIAL_STATUS,
     });
     setSending(false);
-    if (error) return toast.error("Não foi possível enviar. Tente novamente.");
+    if (error) return void toast.error("Não foi possível enviar. Tente novamente.");
     setEnviado(true);
   }
 

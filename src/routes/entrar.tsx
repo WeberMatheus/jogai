@@ -8,9 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/entrar")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    redirect: typeof s.redirect === "string" && s.redirect.startsWith("/") && !s.redirect.startsWith("//") ? s.redirect : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { redirect?: string } => {
+    const r = s["redirect"];
+    return typeof r === "string" && r.startsWith("/") && !r.startsWith("//") ? { redirect: r } : {};
+  },
   head: () => ({
     meta: [
       { title: "Entrar ou cadastrar — Jogaí" },
@@ -41,19 +42,19 @@ function AuthPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const p = schema.safeParse({ email, senha });
-    if (!p.success) return toast.error(p.error.issues[0].message);
+    if (!p.success) return void toast.error(p.error.issues[0]?.message ?? "Dados inválidos");
     setLoading(true);
     if (modo === "entrar") {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
       setLoading(false);
-      if (error) return toast.error("E-mail ou senha incorretos (ou e-mail ainda não confirmado).");
+      if (error) return void toast.error("E-mail ou senha incorretos (ou e-mail ainda não confirmado).");
       const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
       const isEst = (roles ?? []).some((r) => r.role === "estabelecimento");
       navigate({ to: redirect ?? (isEst ? "/painel" : "/") });
     } else {
       if (nome.trim().length < 2) {
         setLoading(false);
-        return toast.error("Informe seu nome");
+        return void toast.error("Informe seu nome");
       }
       const { error } = await supabase.auth.signUp({
         email,
@@ -61,7 +62,7 @@ function AuthPage() {
         options: { emailRedirectTo: window.location.origin + (redirect ?? ""), data: { nome: nome.trim(), tipo } },
       });
       setLoading(false);
-      if (error) return toast.error(error.message);
+      if (error) return void toast.error(error.message);
       setConfirmar(true);
     }
   }
