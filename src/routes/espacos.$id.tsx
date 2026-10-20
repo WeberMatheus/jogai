@@ -80,7 +80,7 @@ function SpacePage() {
       <div className="grid gap-3 sm:grid-cols-3">
         {fotos.length ? (
           fotos.slice(0, 3).map((f, i) => (
-            <img key={f} src={f} alt={space.nome} className={`w-full rounded-3xl object-cover ${i === 0 ? "aspect-[16/10] sm:col-span-2 sm:row-span-2 sm:aspect-auto sm:h-full" : "aspect-[16/10]"}`} />
+            <img key={f} src={f} alt={space.nome} className={`w-full rounded-3xl object-cover ${fotos.length === 1 ? "aspect-[21/9] sm:col-span-3" : i === 0 ? "aspect-[16/10] sm:col-span-2 sm:row-span-2 sm:aspect-auto sm:h-full" : "aspect-[16/10]"}`} />
           ))
         ) : (
           <div className="aspect-[16/10] rounded-3xl bg-muted sm:col-span-3" />
