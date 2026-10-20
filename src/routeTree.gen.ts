@@ -10,33 +10,76 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as AuthenticatedMinhasSolicitacoesRouteImport } from './routes/_authenticated/minhas-solicitacoes'
+import { Route as EspacosIdRouteImport } from './routes/espacos.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedMinhasSolicitacoesRoute =
+  AuthenticatedMinhasSolicitacoesRouteImport.update({
+    id: '/minhas-solicitacoes',
+    path: '/minhas-solicitacoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const EspacosIdRoute = EspacosIdRouteImport.update({
+  id: '/espacos/$id',
+  path: '/espacos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/entrar': typeof EntrarRoute
+  '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
+  '/espacos/$id': typeof EspacosIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/entrar': typeof EntrarRoute
+  '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
+  '/espacos/$id': typeof EspacosIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/entrar': typeof EntrarRoute
+  '/_authenticated/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
+  '/espacos/$id': typeof EspacosIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/entrar' | '/minhas-solicitacoes' | '/espacos/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/entrar' | '/minhas-solicitacoes' | '/espacos/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/entrar'
+    | '/_authenticated/minhas-solicitacoes'
+    | '/espacos/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  EntrarRoute: typeof EntrarRoute
+  EspacosIdRoute: typeof EspacosIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +91,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/minhas-solicitacoes': {
+      id: '/_authenticated/minhas-solicitacoes'
+      path: '/minhas-solicitacoes'
+      fullPath: '/minhas-solicitacoes'
+      preLoaderRoute: typeof AuthenticatedMinhasSolicitacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/espacos/$id': {
+      id: '/espacos/$id'
+      path: '/espacos/$id'
+      fullPath: '/espacos/$id'
+      preLoaderRoute: typeof EspacosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedMinhasSolicitacoesRoute: typeof AuthenticatedMinhasSolicitacoesRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedMinhasSolicitacoesRoute: AuthenticatedMinhasSolicitacoesRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  EntrarRoute: EntrarRoute,
+  EspacosIdRoute: EspacosIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
