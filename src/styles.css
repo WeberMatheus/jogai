@@ -39,6 +39,24 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
+  --animate-gradient: gradient-shift 6s ease infinite;
+  --animate-fade-in: fade-in 0.4s ease both;
+  --animate-slide-up: slide-up 0.4s ease both;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 :root {
@@ -78,6 +96,16 @@
 @utility shadow-card {
   box-shadow: var(--shadow-card);
 }
+@utility animate-gradient {
+  animation: var(--animate-gradient);
+  background-size: 200% 200%;
+}
+@utility animate-fade-in {
+  animation: var(--animate-fade-in);
+}
+@utility animate-slide-up {
+  animation: var(--animate-slide-up);
+}
 
 @layer base {
   * {
@@ -91,5 +119,14 @@
   h1, h2, h3 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
+  }
+  /* Scroll suave */
+  html {
+    scroll-behavior: smooth;
+  }
+  /* Melhorar foco visível globalmente */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
 }
