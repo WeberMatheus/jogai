@@ -76,13 +76,31 @@ export function Footer() {
             </p>
             <ul className="space-y-2 text-sm">
               <li>
-                <span className="cursor-default text-ink-foreground/40">Termos de uso</span>
+                <Link
+                  to="/termos"
+                  search={{ aba: "termos" }}
+                  className="transition hover:text-lime"
+                >
+                  Termos de uso
+                </Link>
               </li>
               <li>
-                <span className="cursor-default text-ink-foreground/40">Política de privacidade</span>
+                <Link
+                  to="/termos"
+                  search={{ aba: "privacidade" }}
+                  className="transition hover:text-lime"
+                >
+                  Política de privacidade
+                </Link>
               </li>
               <li>
-                <span className="cursor-default text-ink-foreground/40">Cancelamento e reembolso</span>
+                <Link
+                  to="/termos"
+                  search={{ aba: "cancelamento" }}
+                  className="transition hover:text-lime"
+                >
+                  Cancelamento e reembolso
+                </Link>
               </li>
             </ul>
           </div>
@@ -90,7 +108,9 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-ink-foreground/10 pt-6 text-xs text-ink-foreground/40 sm:flex-row">
           <p>© {year} Jogaí. Todos os direitos reservados.</p>
-          <p>A reserva só é confirmada após o aceite do estabelecimento. Sem cobranças nesta versão.</p>
+          <p>
+            A reserva só é confirmada após o aceite do estabelecimento. Sem cobranças nesta versão.
+          </p>
         </div>
       </div>
     </footer>

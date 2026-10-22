@@ -7,5 +7,9 @@ const STYLE: Record<string, string> = {
 };
 
 export function StatusBadge({ status }: { status: string }) {
-  return <span className={`rounded-full px-3 py-1 text-xs font-bold ${STYLE[status] ?? ""}`}>{STATUS_LABEL[status] ?? status}</span>;
+  return (
+    <span className={`rounded-full px-3 py-1 text-xs font-bold ${STYLE[status] ?? ""}`}>
+      {STATUS_LABEL[status] ?? status}
+    </span>
+  );
 }

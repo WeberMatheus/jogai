@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { CheckCircle2, MapPin, Clock, ChevronLeft } from "lucide-react";
+import { CheckCircle2, MapPin, Clock, ChevronLeft, Share2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -22,7 +22,35 @@ function SpacePage() {
   const navigate = useNavigate();
   const [enviado, setEnviado] = useState(false);
   const [sending, setSending] = useState(false);
-  const [form, setForm] = useState({ data: "", horario: "", duracao_horas: "1", contato_nome: "", contato_telefone: "" });
+  const [form, setForm] = useState({
+    data: "",
+    horario: "",
+    duracao_horas: "1",
+    contato_nome: "",
+    contato_telefone: "",
+  });
+  const [copiado, setCopiado] = useState(false);
+
+  async function compartilhar() {
+    if (typeof navigator !== "undefined" && navigator.share && space) {
+      try {
+        await navigator.share({
+          title: `${space.nome} — Jogaí`,
+          text: `Confira este espaço esportivo no Jogaí: ${space.nome} (${space.modalidade})`,
+          url: window.location.href,
+        });
+        return;
+      } catch {
+        // Fallback to clipboard se o usuário cancelar ou o navegador não suportar
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopiado(true);
+      toast.success("Link copiado para a área de transferência!");
+      setTimeout(() => setCopiado(false), 2000);
+    }
+  }
 
   const { data: space, isLoading } = useQuery({
     queryKey: ["space", id],
@@ -35,9 +63,21 @@ function SpacePage() {
   const fotos = usePhotos(space?.fotos);
 
   // SEO dinâmico via efeito de título — atualiza o título quando o espaço carrega
-  if (typeof document !== "undefined" && space?.nome) {
-    document.title = `${space.nome} — Jogaí`;
-  }
+  useEffect(() => {
+    if (typeof document !== "undefined" && space?.nome) {
+      document.title = `${space.nome} — Jogaí`;
+    }
+  }, [space?.nome]);
+
+  // Preenche nome automaticamente se o usuário estiver logado
+  useEffect(() => {
+    if (user && !form.contato_nome) {
+      const nomeAuth = (user.user_metadata?.["nome"] as string) ?? "";
+      if (nomeAuth) {
+        setForm((prev) => ({ ...prev, contato_nome: nomeAuth }));
+      }
+    }
+  }, [user, form.contato_nome]);
 
   if (isLoading) {
     return (
@@ -61,7 +101,9 @@ function SpacePage() {
       <div className="p-10 text-center">
         <div className="mb-4 text-5xl">🏟️</div>
         <p className="font-display text-xl font-bold">Espaço não encontrado</p>
-        <p className="mt-1 text-sm text-muted-foreground">Este espaço pode ter sido removido ou não existe.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Este espaço pode ter sido removido ou não existe.
+        </p>
         <Link to="/" className="mt-4 inline-flex items-center gap-1 text-primary underline">
           <ChevronLeft className="h-4 w-4" />
           Voltar ao catálogo
@@ -70,18 +112,9 @@ function SpacePage() {
     );
 
   const total = bookingTotal(Number(space.preco_hora), Number(form.duracao_horas) || 0);
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setForm({ ...form, [k]: e.target.value });
-
-  // Preenche nome automaticamente se o usuário estiver logado
-  useEffect(() => {
-    if (user && !form.contato_nome) {
-      const nomeAuth = (user.user_metadata?.["nome"] as string) ?? "";
-      if (nomeAuth) {
-        setForm((prev) => ({ ...prev, contato_nome: nomeAuth }));
-      }
-    }
-  }, [user]);
+  const set =
+    (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+      setForm({ ...form, [k]: e.target.value });
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -91,7 +124,8 @@ function SpacePage() {
       return;
     }
     const parsed = bookingSchema.safeParse(form);
-    if (!parsed.success) return void toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos");
+    if (!parsed.success)
+      return void toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos");
     setSending(true);
     const { error } = await supabase.from("booking_requests").insert({
       ...parsed.data,
@@ -108,7 +142,10 @@ function SpacePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       {/* Breadcrumb */}
-      <nav className="mb-4 flex items-center gap-1 text-sm text-muted-foreground" aria-label="Breadcrumb">
+      <nav
+        className="mb-4 flex items-center gap-1 text-sm text-muted-foreground"
+        aria-label="Breadcrumb"
+      >
         <Link to="/" className="transition hover:text-primary">
           Catálogo
         </Link>
@@ -119,20 +156,22 @@ function SpacePage() {
       {/* Galeria de fotos */}
       <div className="grid gap-3 sm:grid-cols-3">
         {fotos.length ? (
-          fotos.slice(0, 3).map((f, i) => (
-            <img
-              key={f}
-              src={f}
-              alt={`${space.nome} — foto ${i + 1}`}
-              className={`w-full rounded-3xl object-cover ${
-                fotos.length === 1
-                  ? "aspect-[21/9] sm:col-span-3"
-                  : i === 0
-                  ? "aspect-[16/10] sm:col-span-2 sm:row-span-2 sm:aspect-auto sm:h-full"
-                  : "aspect-[16/10]"
-              }`}
-            />
-          ))
+          fotos
+            .slice(0, 3)
+            .map((f, i) => (
+              <img
+                key={f}
+                src={f}
+                alt={`${space.nome} — foto ${i + 1}`}
+                className={`w-full rounded-3xl object-cover ${
+                  fotos.length === 1
+                    ? "aspect-[21/9] sm:col-span-3"
+                    : i === 0
+                      ? "aspect-[16/10] sm:col-span-2 sm:row-span-2 sm:aspect-auto sm:h-full"
+                      : "aspect-[16/10]"
+                }`}
+              />
+            ))
         ) : (
           <div className="aspect-[16/10] rounded-3xl bg-muted sm:col-span-3 flex items-center justify-center text-5xl text-muted-foreground/30">
             🏟️
@@ -144,15 +183,30 @@ function SpacePage() {
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           {/* Cabeçalho */}
-          <div>
-            <span className="rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
-              {space.modalidade}
-            </span>
-            <h1 className="mt-2 text-3xl font-extrabold">{space.nome}</h1>
-            <p className="mt-1 flex items-center gap-1 text-muted-foreground">
-              <MapPin className="h-4 w-4 shrink-0" />
-              {space.endereco} — {space.bairro}
-            </p>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <span className="rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
+                {space.modalidade}
+              </span>
+              <h1 className="mt-2 text-3xl font-extrabold">{space.nome}</h1>
+              <p className="mt-1 flex items-center gap-1 text-muted-foreground">
+                <MapPin className="h-4 w-4 shrink-0" />
+                {space.endereco} — {space.bairro}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={compartilhar}
+              className="rounded-full gap-1.5"
+            >
+              {copiado ? (
+                <Check className="h-3.5 w-3.5 text-success" />
+              ) : (
+                <Share2 className="h-3.5 w-3.5" />
+              )}
+              {copiado ? "Link copiado!" : "Compartilhar"}
+            </Button>
           </div>
 
           {/* Descrição */}
@@ -187,8 +241,9 @@ function SpacePage() {
           {/* Informações de contato / Nota */}
           <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
             <p className="flex items-start gap-2">
-              <Clock className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-              A reserva é uma <strong className="text-foreground">solicitação</strong> — ela só é confirmada após o aceite do estabelecimento. Nenhum pagamento é cobrado agora.
+              <Clock className="mt-0.5 h-4 w-4 shrink-0 text-warning" />A reserva é uma{" "}
+              <strong className="text-foreground">solicitação</strong> — ela só é confirmada após o
+              aceite do estabelecimento. Nenhum pagamento é cobrado agora.
             </p>
           </div>
         </div>
@@ -207,7 +262,11 @@ function SpacePage() {
               </Button>
             </div>
           ) : (
-            <form onSubmit={enviar} className="space-y-3" aria-label="Formulário de solicitação de reserva">
+            <form
+              onSubmit={enviar}
+              className="space-y-3"
+              aria-label="Formulário de solicitação de reserva"
+            >
               <p className="font-display text-2xl font-extrabold text-primary">
                 {formatBRL(Number(space.preco_hora))}
                 <span className="text-sm font-medium text-muted-foreground"> /hora</span>
@@ -227,7 +286,12 @@ function SpacePage() {
                 </div>
                 <div>
                   <Label htmlFor="res-horario">Horário</Label>
-                  <Input id="res-horario" type="time" value={form.horario} onChange={set("horario")} />
+                  <Input
+                    id="res-horario"
+                    type="time"
+                    value={form.horario}
+                    onChange={set("horario")}
+                  />
                 </div>
               </div>
 
@@ -249,7 +313,12 @@ function SpacePage() {
 
               <div>
                 <Label htmlFor="res-nome">Seu nome</Label>
-                <Input id="res-nome" value={form.contato_nome} onChange={set("contato_nome")} maxLength={100} />
+                <Input
+                  id="res-nome"
+                  value={form.contato_nome}
+                  onChange={set("contato_nome")}
+                  maxLength={100}
+                />
               </div>
               <div>
                 <Label htmlFor="res-tel">Telefone</Label>

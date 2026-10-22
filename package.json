@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:vercel": "node -e \"process.env.VERCEL='1'; require('child_process').execSync('vite build', { stdio: 'inherit', env: process.env })\"",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",

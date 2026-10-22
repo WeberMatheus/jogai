@@ -26,9 +26,15 @@ export const Route = createFileRoute("/entrar")({
   head: () => ({
     meta: [
       { title: "Entrar ou cadastrar — Jogaí" },
-      { name: "description", content: "Acesse sua conta Jogaí como jogador ou estabelecimento esportivo." },
+      {
+        name: "description",
+        content: "Acesse sua conta Jogaí como jogador ou estabelecimento esportivo.",
+      },
       { property: "og:title", content: "Entrar ou cadastrar — Jogaí" },
-      { property: "og:description", content: "Acesse sua conta Jogaí como jogador ou estabelecimento esportivo." },
+      {
+        property: "og:description",
+        content: "Acesse sua conta Jogaí como jogador ou estabelecimento esportivo.",
+      },
     ],
   }),
   component: AuthPage,
@@ -42,7 +48,7 @@ const schema = z.object({
 function AuthPage() {
   const { redirect } = Route.useSearch();
   const navigate = useNavigate();
-  const [modo, setModo] = useState<"entrar" | "cadastrar">("entrar");
+  const [modo, setModo] = useState<"entrar" | "cadastrar" | "recuperar">("entrar");
   const [tipo, setTipo] = useState<"usuario" | "estabelecimento">("usuario");
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -50,8 +56,24 @@ function AuthPage() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
   const [confirmar, setConfirmar] = useState(false);
+  const [recuperacaoEnviada, setRecuperacaoEnviada] = useState(false);
 
   const isReservaRedirect = redirect?.includes("/espacos/");
+
+  async function recuperarSenha(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim() || !email.includes("@")) {
+      return void toast.error("Informe um e-mail válido para recuperação.");
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: window.location.origin + "/entrar",
+    });
+    setLoading(false);
+    if (error) return void toast.error(error.message);
+    setRecuperacaoEnviada(true);
+    toast.success("E-mail de recuperação enviado com sucesso!");
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,14 +88,17 @@ function AuthPage() {
         return void toast.error("E-mail ou senha incorretos (ou e-mail ainda não confirmado).");
       }
       toast.success("Bem-vindo de volta!");
-      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.user.id);
       const isEst = (roles ?? []).some((r) => r.role === "estabelecimento");
       navigate({ to: redirect ?? (isEst ? "/painel" : "/") });
     } else {
       if (nome.trim().length < 2) {
         setLoading(false);
         return void toast.error(
-          tipo === "usuario" ? "Informe seu nome completo" : "Informe o nome do estabelecimento"
+          tipo === "usuario" ? "Informe seu nome completo" : "Informe o nome do estabelecimento",
         );
       }
       const { error } = await supabase.auth.signUp({
@@ -96,7 +121,8 @@ function AuthPage() {
       {/* Banner se veio do fluxo de reserva */}
       {isReservaRedirect && (
         <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/10 p-4 text-center text-sm font-medium text-foreground">
-          ⚽ <strong>Quase lá!</strong> Entre na sua conta ou crie uma rapidinho para solicitar a sua reserva.
+          ⚽ <strong>Quase lá!</strong> Entre na sua conta ou crie uma rapidinho para solicitar a
+          sua reserva.
         </div>
       )}
 
@@ -113,7 +139,8 @@ function AuthPage() {
               {modo === "entrar" ? "Acesse sua conta no Jogaí" : "Crie sua conta gratuita"}
             </h1>
             <p className="mt-2 text-muted-foreground">
-              A forma mais simples de conectar praticantes de esporte e donos de quadras, campos e piscinas.
+              A forma mais simples de conectar praticantes de esporte e donos de quadras, campos e
+              piscinas.
             </p>
           </div>
 
@@ -132,7 +159,8 @@ function AuthPage() {
                 <div>
                   <h2 className="font-bold text-sm">Perfil Jogador</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Busque espaços esportivos na cidade, compare preços e solicite reservas sem taxas.
+                    Busque espaços esportivos na cidade, compare preços e solicite reservas sem
+                    taxas.
                   </p>
                 </div>
               </div>
@@ -152,7 +180,8 @@ function AuthPage() {
                 <div>
                   <h2 className="font-bold text-sm">Perfil Estabelecimento</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Cadastre suas quadras e campos, divulgue horários e receba solicitações direto no seu painel.
+                    Cadastre suas quadras e campos, divulgue horários e receba solicitações direto
+                    no seu painel.
                   </p>
                 </div>
               </div>
@@ -177,7 +206,9 @@ function AuthPage() {
                 </div>
                 <h2 className="text-2xl font-extrabold">Confira seu e-mail</h2>
                 <p className="text-muted-foreground max-w-sm mx-auto text-sm leading-relaxed">
-                  Enviamos um link de confirmação para <strong className="text-foreground">{email}</strong>. Clique no link para ativar sua conta e entrar.
+                  Enviamos um link de confirmação para{" "}
+                  <strong className="text-foreground">{email}</strong>. Clique no link para ativar
+                  sua conta e entrar.
                 </p>
                 <div className="pt-2">
                   <Button
@@ -194,147 +225,249 @@ function AuthPage() {
               </div>
             ) : (
               <>
-                {/* Abas Entrar / Cadastrar */}
-                <div className="mb-6 grid grid-cols-2 rounded-full bg-muted p-1 text-sm font-semibold">
-                  <button
-                    type="button"
-                    onClick={() => setModo("entrar")}
-                    className={`rounded-full py-2 transition ${
-                      modo === "entrar" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Entrar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setModo("cadastrar")}
-                    className={`rounded-full py-2 transition ${
-                      modo === "cadastrar" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Criar conta
-                  </button>
-                </div>
+                {modo === "recuperar" ? (
+                  <div className="space-y-4">
+                    <div>
+                      <h2 className="text-xl font-extrabold">Recuperar acesso</h2>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Informe o e-mail cadastrado e enviaremos as instruções para você redefinir
+                        sua senha.
+                      </p>
+                    </div>
 
-                <form onSubmit={submit} className="space-y-4" noValidate>
-                  {modo === "cadastrar" && (
-                    <div className="space-y-4 animate-in fade-in duration-300">
+                    {recuperacaoEnviada ? (
+                      <div className="rounded-2xl border border-success/30 bg-success/10 p-5 text-center space-y-3">
+                        <CheckCircle2 className="mx-auto h-8 w-8 text-success" />
+                        <p className="font-semibold text-sm">E-mail enviado!</p>
+                        <p className="text-xs text-muted-foreground">
+                          Se houver uma conta com o e-mail <strong>{email}</strong>, você receberá
+                          um link seguro de recuperação em instantes.
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full"
+                          onClick={() => {
+                            setRecuperacaoEnviada(false);
+                            setModo("entrar");
+                          }}
+                        >
+                          Voltar ao login
+                        </Button>
+                      </div>
+                    ) : (
+                      <form onSubmit={recuperarSenha} className="space-y-4">
+                        <div>
+                          <Label htmlFor="rec-email">Seu e-mail</Label>
+                          <div className="relative mt-1">
+                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              id="rec-email"
+                              type="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              placeholder="seu@email.com"
+                              className="h-11 rounded-2xl pl-10"
+                              autoComplete="email"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <Button
+                          type="submit"
+                          className="h-12 w-full rounded-full text-base font-semibold"
+                          disabled={loading}
+                        >
+                          {loading ? "Enviando…" : "Enviar link de recuperação"}
+                        </Button>
+
+                        <div className="text-center">
+                          <button
+                            type="button"
+                            onClick={() => setModo("entrar")}
+                            className="text-xs text-primary hover:underline"
+                          >
+                            Lembrou sua senha? Voltar ao login
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    {/* Abas Entrar / Cadastrar */}
+                    <div className="mb-6 grid grid-cols-2 rounded-full bg-muted p-1 text-sm font-semibold">
+                      <button
+                        type="button"
+                        onClick={() => setModo("entrar")}
+                        className={`rounded-full py-2 transition ${
+                          modo === "entrar"
+                            ? "bg-card text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Entrar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setModo("cadastrar")}
+                        className={`rounded-full py-2 transition ${
+                          modo === "cadastrar"
+                            ? "bg-card text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Criar conta
+                      </button>
+                    </div>
+
+                    <form onSubmit={submit} className="space-y-4" noValidate>
+                      {modo === "cadastrar" && (
+                        <div className="space-y-4 animate-in fade-in duration-300">
+                          <div>
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                              Tipo de conta
+                            </Label>
+                            <div className="mt-1.5 grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setTipo("usuario")}
+                                className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-sm font-semibold transition ${
+                                  tipo === "usuario"
+                                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                                    : "border-border bg-background hover:bg-muted"
+                                }`}
+                              >
+                                <User className="h-4 w-4" />
+                                Jogador
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setTipo("estabelecimento")}
+                                className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-sm font-semibold transition ${
+                                  tipo === "estabelecimento"
+                                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                                    : "border-border bg-background hover:bg-muted"
+                                }`}
+                              >
+                                <Building2 className="h-4 w-4" />
+                                Estabelecimento
+                              </button>
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="auth-nome">
+                              {tipo === "usuario" ? "Seu nome completo" : "Nome do estabelecimento"}
+                            </Label>
+                            <Input
+                              id="auth-nome"
+                              value={nome}
+                              onChange={(e) => setNome(e.target.value)}
+                              placeholder={
+                                tipo === "usuario" ? "Ex.: Carlos Eduardo" : "Ex.: Arena Gol & Bola"
+                              }
+                              maxLength={100}
+                              className="mt-1 h-11 rounded-2xl"
+                            />
+                          </div>
+                        </div>
+                      )}
+
                       <div>
-                        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                          Tipo de conta
-                        </Label>
-                        <div className="mt-1.5 grid grid-cols-2 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setTipo("usuario")}
-                            className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-sm font-semibold transition ${
-                              tipo === "usuario"
-                                ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                                : "border-border bg-background hover:bg-muted"
-                            }`}
-                          >
-                            <User className="h-4 w-4" />
-                            Jogador
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setTipo("estabelecimento")}
-                            className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-sm font-semibold transition ${
-                              tipo === "estabelecimento"
-                                ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                                : "border-border bg-background hover:bg-muted"
-                            }`}
-                          >
-                            <Building2 className="h-4 w-4" />
-                            Estabelecimento
-                          </button>
+                        <Label htmlFor="auth-email">E-mail</Label>
+                        <div className="relative mt-1">
+                          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="auth-email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="seu@email.com"
+                            className="h-11 rounded-2xl pl-10"
+                            autoComplete="email"
+                          />
                         </div>
                       </div>
 
                       <div>
-                        <Label htmlFor="auth-nome">
-                          {tipo === "usuario" ? "Seu nome completo" : "Nome do estabelecimento"}
-                        </Label>
-                        <Input
-                          id="auth-nome"
-                          value={nome}
-                          onChange={(e) => setNome(e.target.value)}
-                          placeholder={tipo === "usuario" ? "Ex.: Carlos Eduardo" : "Ex.: Arena Gol & Bola"}
-                          maxLength={100}
-                          className="mt-1 h-11 rounded-2xl"
-                        />
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="auth-senha">Senha</Label>
+                          {modo === "cadastrar" ? (
+                            <span className="text-xs text-muted-foreground">
+                              Mínimo 6 caracteres
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setModo("recuperar")}
+                              className="text-xs text-primary hover:underline"
+                            >
+                              Esqueceu a senha?
+                            </button>
+                          )}
+                        </div>
+                        <div className="relative mt-1">
+                          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="auth-senha"
+                            type={mostrarSenha ? "text" : "password"}
+                            value={senha}
+                            onChange={(e) => setSenha(e.target.value)}
+                            placeholder="••••••••"
+                            className="h-11 rounded-2xl pl-10 pr-10"
+                            autoComplete={modo === "entrar" ? "current-password" : "new-password"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setMostrarSenha(!mostrarSenha)}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            aria-label={mostrarSenha ? "Ocultar senha" : "Exibir senha"}
+                          >
+                            {mostrarSenha ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
 
-                  <div>
-                    <Label htmlFor="auth-email">E-mail</Label>
-                    <div className="relative mt-1">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="auth-email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="seu@email.com"
-                        className="h-11 rounded-2xl pl-10"
-                        autoComplete="email"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="auth-senha">Senha</Label>
-                      {modo === "cadastrar" && (
-                        <span className="text-xs text-muted-foreground">Mínimo 6 caracteres</span>
-                      )}
-                    </div>
-                    <div className="relative mt-1">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="auth-senha"
-                        type={mostrarSenha ? "text" : "password"}
-                        value={senha}
-                        onChange={(e) => setSenha(e.target.value)}
-                        placeholder="••••••••"
-                        className="h-11 rounded-2xl pl-10 pr-10"
-                        autoComplete={modo === "entrar" ? "current-password" : "new-password"}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setMostrarSenha(!mostrarSenha)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        aria-label={mostrarSenha ? "Ocultar senha" : "Exibir senha"}
+                      <Button
+                        type="submit"
+                        className="h-12 w-full rounded-full text-base font-semibold transition"
+                        disabled={loading}
                       >
-                        {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
+                        {loading ? (
+                          "Aguarde…"
+                        ) : modo === "entrar" ? (
+                          <span className="flex items-center justify-center gap-2">
+                            Entrar <ArrowRight className="h-4 w-4" />
+                          </span>
+                        ) : (
+                          <span className="flex items-center justify-center gap-2">
+                            Criar conta como {tipo === "usuario" ? "Jogador" : "Estabelecimento"}
+                            <ArrowRight className="h-4 w-4" />
+                          </span>
+                        )}
+                      </Button>
 
-                  <Button
-                    type="submit"
-                    className="h-12 w-full rounded-full text-base font-semibold transition"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      "Aguarde…"
-                    ) : modo === "entrar" ? (
-                      <span className="flex items-center justify-center gap-2">
-                        Entrar <ArrowRight className="h-4 w-4" />
-                      </span>
-                    ) : (
-                      <span className="flex items-center justify-center gap-2">
-                        Criar conta como {tipo === "usuario" ? "Jogador" : "Estabelecimento"}
-                        <ArrowRight className="h-4 w-4" />
-                      </span>
-                    )}
-                  </Button>
-
-                  <p className="pt-2 text-center text-xs text-muted-foreground">
-                    Ao continuar, você concorda com os termos de uso e privacidade do Jogaí.
-                  </p>
-                </form>
+                      <p className="pt-2 text-center text-xs text-muted-foreground">
+                        Ao continuar, você concorda com os{" "}
+                        <Link
+                          to="/termos"
+                          search={{ aba: "termos" }}
+                          className="text-primary hover:underline font-medium"
+                        >
+                          termos de uso e privacidade
+                        </Link>{" "}
+                        do Jogaí.
+                      </p>
+                    </form>
+                  </>
+                )}
               </>
             )}
           </div>

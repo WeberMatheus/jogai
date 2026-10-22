@@ -26,13 +26,19 @@ export function SiteHeader() {
       <header className="sticky top-0 z-30 bg-ink text-ink-foreground shadow-[0_1px_0_0_rgba(255,255,255,0.06)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime rounded-xl">
+          <Link
+            to="/"
+            className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime rounded-xl"
+          >
             <img src={logo.url} alt="Jogaí" className="h-11 w-11 rounded-xl object-cover" />
             <span className="font-display text-xl font-extrabold tracking-tight">Jogaí</span>
           </Link>
 
           {/* Nav desktop */}
-          <nav className="hidden items-center gap-1 text-sm sm:flex" aria-label="Navegação principal">
+          <nav
+            className="hidden items-center gap-1 text-sm sm:flex"
+            aria-label="Navegação principal"
+          >
             {user ? (
               <>
                 {role === "estabelecimento" ? (
@@ -54,7 +60,12 @@ export function SiteHeader() {
                     Minhas solicitações
                   </Link>
                 )}
-                <Button size="sm" variant="lime" onClick={sair} className="flex items-center gap-1.5">
+                <Button
+                  size="sm"
+                  variant="lime"
+                  onClick={sair}
+                  className="flex items-center gap-1.5"
+                >
                   <LogOut className="h-3.5 w-3.5" />
                   Sair
                 </Button>

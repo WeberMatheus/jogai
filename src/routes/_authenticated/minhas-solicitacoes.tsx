@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge } from "@/components/StatusBadge";
 import { bookingTotal, formatBRL } from "@/lib/booking";
@@ -12,7 +13,10 @@ export const Route = createFileRoute("/_authenticated/minhas-solicitacoes")({
       { title: "Minhas solicitações — Jogaí" },
       { name: "description", content: "Acompanhe o status das suas solicitações de reserva." },
       { property: "og:title", content: "Minhas solicitações — Jogaí" },
-      { property: "og:description", content: "Acompanhe o status das suas solicitações de reserva." },
+      {
+        property: "og:description",
+        content: "Acompanhe o status das suas solicitações de reserva.",
+      },
     ],
   }),
   component: Page,
@@ -32,6 +36,11 @@ function Page() {
       return data;
     },
   });
+
+  const [statusFilter, setStatusFilter] = useState<
+    "todas" | "pendente" | "confirmada" | "recusada"
+  >("todas");
+  const filtered = data.filter((r) => statusFilter === "todas" || r.status === statusFilter);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -70,63 +79,129 @@ function Page() {
           </Link>
         </div>
       ) : (
-        <ul className="mt-6 space-y-3" aria-label="Lista de solicitações">
-          {data.map((r) => {
-            const dataFormatada = new Date(r.data + "T00:00").toLocaleDateString("pt-BR", {
-              weekday: "short",
-              day: "numeric",
-              month: "short",
-            });
-            const total = bookingTotal(Number(r.spaces?.preco_hora ?? 0), r.duracao_horas);
+        <div className="mt-6 space-y-4">
+          {/* Filtros de status */}
+          <div
+            className="flex flex-wrap gap-2"
+            role="tablist"
+            aria-label="Filtrar minhas solicitações"
+          >
+            {(["todas", "pendente", "confirmada", "recusada"] as const).map((st) => {
+              const count =
+                st === "todas" ? data.length : data.filter((r) => r.status === st).length;
+              const label =
+                st === "todas"
+                  ? "Todas"
+                  : st === "pendente"
+                    ? "Pendentes"
+                    : st === "confirmada"
+                      ? "Confirmadas"
+                      : "Recusadas";
+              const on = statusFilter === st;
+              return (
+                <button
+                  key={st}
+                  onClick={() => setStatusFilter(st)}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                    on
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {label} ({count})
+                </button>
+              );
+            })}
+          </div>
 
-            return (
-              <li
-                key={r.id}
-                className="group rounded-3xl border bg-card p-4 transition hover:shadow-card"
+          {filtered.length === 0 ? (
+            <div className="rounded-3xl border border-dashed bg-card p-8 text-center">
+              <p className="text-sm font-medium text-muted-foreground">
+                Nenhuma solicitação encontrada com status "{statusFilter}".
+              </p>
+              <button
+                onClick={() => setStatusFilter("todas")}
+                className="mt-2 text-xs font-semibold text-primary underline"
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    {/* Nome e link para o espaço */}
-                    <div className="flex items-center gap-2">
-                      <Link
-                        to="/espacos/$id"
-                        params={{ id: r.space_id }}
-                        className="font-display font-bold hover:text-primary transition truncate"
-                      >
-                        {r.spaces?.nome}
-                      </Link>
-                      <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition" />
+                Ver todas as solicitações
+              </button>
+            </div>
+          ) : (
+            <ul className="space-y-3" aria-label="Lista de solicitações">
+              {filtered.map((r) => {
+                const dataFormatada = new Date(r.data + "T00:00").toLocaleDateString("pt-BR", {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                });
+                const total = bookingTotal(Number(r.spaces?.preco_hora ?? 0), r.duracao_horas);
+
+                return (
+                  <li
+                    key={r.id}
+                    className="group rounded-3xl border bg-card p-4 transition hover:shadow-card"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        {/* Nome e link para o espaço */}
+                        <div className="flex items-center gap-2">
+                          <Link
+                            to="/espacos/$id"
+                            params={{ id: r.space_id }}
+                            className="font-display font-bold hover:text-primary transition truncate"
+                          >
+                            {r.spaces?.nome}
+                          </Link>
+                          <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition" />
+                        </div>
+
+                        {/* Modalidade e bairro */}
+                        {(r.spaces?.modalidade || r.spaces?.bairro) && (
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {[r.spaces?.modalidade, r.spaces?.bairro].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
+
+                        {/* Data, horário e duração */}
+                        <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <CalendarDays className="h-4 w-4" />
+                            {dataFormatada}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            {r.horario.slice(0, 5)} · {r.duracao_horas}h
+                          </span>
+                          <span className="font-display font-bold text-foreground">
+                            {formatBRL(total)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <StatusBadge status={r.status} />
                     </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
 
-                    {/* Modalidade e bairro */}
-                    {(r.spaces?.modalidade || r.spaces?.bairro) && (
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {[r.spaces?.modalidade, r.spaces?.bairro].filter(Boolean).join(" · ")}
-                      </p>
-                    )}
-
-                    {/* Data, horário e duração */}
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <CalendarDays className="h-4 w-4" />
-                        {dataFormatada}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {r.horario.slice(0, 5)} · {r.duracao_horas}h
-                      </span>
-                      <span className="font-display font-bold text-foreground">
-                        {formatBRL(total)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <StatusBadge status={r.status} />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+      {data.length > 0 && (
+        <div className="mt-8 rounded-2xl border border-dashed bg-muted/30 p-4 text-xs text-muted-foreground flex items-center justify-between gap-4 flex-wrap">
+          <p>
+            Dúvidas ou precisa cancelar uma reserva? Consulte as{" "}
+            <Link
+              to="/termos"
+              search={{ aba: "cancelamento" }}
+              className="text-primary hover:underline font-medium"
+            >
+              diretrizes de cancelamento
+            </Link>{" "}
+            ou contate o espaço.
+          </p>
+        </div>
       )}
     </div>
   );

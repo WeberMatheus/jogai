@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AuthenticatedMinhasSolicitacoesRouteImport } from './routes/_authenticated/minhas-solicitacoes'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as EspacosIdRouteImport } from './routes/espacos.$id'
@@ -28,6 +29,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const EntrarRoute = EntrarRouteImport.update({
   id: '/entrar',
   path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedMinhasSolicitacoesRoute =
@@ -50,6 +56,7 @@ const EspacosIdRoute = EspacosIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
+  '/termos': typeof TermosRoute
   '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/espacos/$id': typeof EspacosIdRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
+  '/termos': typeof TermosRoute
   '/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/espacos/$id': typeof EspacosIdRoute
@@ -66,6 +74,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/entrar': typeof EntrarRoute
+  '/termos': typeof TermosRoute
   '/_authenticated/minhas-solicitacoes': typeof AuthenticatedMinhasSolicitacoesRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/espacos/$id': typeof EspacosIdRoute
@@ -73,14 +82,26 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/entrar' | '/minhas-solicitacoes' | '/painel' | '/espacos/$id'
+    | '/'
+    | '/entrar'
+    | '/termos'
+    | '/minhas-solicitacoes'
+    | '/painel'
+    | '/espacos/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/entrar' | '/minhas-solicitacoes' | '/painel' | '/espacos/$id'
+  to:
+    | '/'
+    | '/entrar'
+    | '/termos'
+    | '/minhas-solicitacoes'
+    | '/painel'
+    | '/espacos/$id'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/entrar'
+    | '/termos'
     | '/_authenticated/minhas-solicitacoes'
     | '/_authenticated/painel'
     | '/espacos/$id'
@@ -90,6 +111,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   EntrarRoute: typeof EntrarRoute
+  TermosRoute: typeof TermosRoute
   EspacosIdRoute: typeof EspacosIdRoute
 }
 
@@ -114,6 +136,13 @@ declare module '@tanstack/react-router' {
       path: '/entrar'
       fullPath: '/entrar'
       preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/minhas-solicitacoes': {
@@ -157,6 +186,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   EntrarRoute: EntrarRoute,
+  TermosRoute: TermosRoute,
   EspacosIdRoute: EspacosIdRoute,
 }
 export const routeTree = rootRouteImport

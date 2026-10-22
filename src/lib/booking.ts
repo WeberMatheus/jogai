@@ -21,7 +21,10 @@ export const bookingSchema = z.object({
   horario: z.string().min(1, "Escolha o horário"),
   duracao_horas: z.coerce.number().int().min(1).max(12),
   contato_nome: z.string().trim().min(2, "Informe seu nome").max(100),
-  contato_telefone: z.string().trim().regex(/^[\d\s()+-]{8,20}$/, "Telefone inválido"),
+  contato_telefone: z
+    .string()
+    .trim()
+    .regex(/^[\d\s()+-]{8,20}$/, "Telefone inválido"),
 });
 
 export const spaceSchema = z.object({

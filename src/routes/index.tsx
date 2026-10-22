@@ -13,9 +13,15 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Jogaí — Encontre e reserve espaços esportivos" },
-      { name: "description", content: "Quadras, campos e piscinas na sua cidade. Compare preços e solicite sua reserva." },
+      {
+        name: "description",
+        content: "Quadras, campos e piscinas na sua cidade. Compare preços e solicite sua reserva.",
+      },
       { property: "og:title", content: "Jogaí — Encontre e reserve espaços esportivos" },
-      { property: "og:description", content: "Quadras, campos e piscinas na sua cidade. Compare preços e solicite sua reserva." },
+      {
+        property: "og:description",
+        content: "Quadras, campos e piscinas na sua cidade. Compare preços e solicite sua reserva.",
+      },
     ],
   }),
   component: Index,
@@ -23,7 +29,16 @@ export const Route = createFileRoute("/")({
 
 type Row = SpaceRow & { comodidades: string[] };
 
-const MODALIDADES_RAPIDAS = ["Futsal", "Tênis", "Natação", "Basquete", "Vôlei", "Padel"];
+const MODALIDADES_RAPIDAS = [
+  "Society",
+  "Beach tennis",
+  "Futsal",
+  "Tênis",
+  "Natação",
+  "Basquete",
+  "Vôlei",
+  "Padel",
+];
 
 function Index() {
   const [modalidade, setModalidade] = useState("");
@@ -181,7 +196,12 @@ function Index() {
           {/* Limpar filtros */}
           {(modalidade || regiao || coms.length > 0 || precoMax < 300) && (
             <button
-              onClick={() => { setModalidade(""); setRegiao(""); setComs([]); setPrecoMax(300); }}
+              onClick={() => {
+                setModalidade("");
+                setRegiao("");
+                setComs([]);
+                setPrecoMax(300);
+              }}
               className="w-full rounded-full border border-dashed py-1.5 text-xs font-medium text-muted-foreground transition hover:border-destructive hover:text-destructive"
             >
               Limpar filtros
@@ -202,7 +222,12 @@ function Index() {
               </p>
               {(modalidade || regiao || coms.length > 0) && (
                 <button
-                  onClick={() => { setModalidade(""); setRegiao(""); setComs([]); setPrecoMax(300); }}
+                  onClick={() => {
+                    setModalidade("");
+                    setRegiao("");
+                    setComs([]);
+                    setPrecoMax(300);
+                  }}
                   className="mt-4 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
                 >
                   Limpar filtros
@@ -223,10 +248,13 @@ function Index() {
       <section className="border-t bg-muted/40 py-16">
         <div className="mx-auto max-w-6xl px-4">
           <div className="text-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary">Simples e rápido</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
+              Simples e rápido
+            </span>
             <h2 className="mt-1 text-3xl font-extrabold sm:text-4xl">Como funciona o Jogaí</h2>
             <p className="mt-2 text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
-              Conectamos praticantes de esportes aos melhores locais da cidade em 3 passos descomplicados.
+              Conectamos praticantes de esportes aos melhores locais da cidade em 3 passos
+              descomplicados.
             </p>
           </div>
 
@@ -237,7 +265,8 @@ function Index() {
               </div>
               <h3 className="mt-4 font-display text-lg font-bold">Encontre o espaço ideal</h3>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                Filtre por modalidade (futsal, tênis, basquete, natação), compare preços por hora, fotos e comodidades no seu bairro.
+                Filtre por modalidade (futsal, tênis, basquete, natação), compare preços por hora,
+                fotos e comodidades no seu bairro.
               </p>
             </div>
 
@@ -247,7 +276,8 @@ function Index() {
               </div>
               <h3 className="mt-4 font-display text-lg font-bold">Solicite sua reserva</h3>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                Escolha a data, o melhor horário e envie sua solicitação em segundos. Sem pagamento antecipado nesta etapa.
+                Escolha a data, o melhor horário e envie sua solicitação em segundos. Sem pagamento
+                antecipado nesta etapa.
               </p>
             </div>
 
@@ -257,7 +287,8 @@ function Index() {
               </div>
               <h3 className="mt-4 font-display text-lg font-bold">Confirmação direta</h3>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                O estabelecimento analisa a solicitação e confirma. Você acompanha todo o status na sua conta em tempo real.
+                O estabelecimento analisa a solicitação e confirma. Você acompanha todo o status na
+                sua conta em tempo real.
               </p>
             </div>
           </div>
@@ -282,7 +313,8 @@ function Index() {
               Tem um espaço esportivo? Anuncie no Jogaí
             </h2>
             <p className="mt-2 text-sm text-ink-foreground/75 leading-relaxed sm:text-base">
-              Cadastre suas quadras, campos ou piscinas, receba solicitações de reserva diretamente no painel e aumente a ocupação dos seus horários.
+              Cadastre suas quadras, campos ou piscinas, receba solicitações de reserva diretamente
+              no painel e aumente a ocupação dos seus horários.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
