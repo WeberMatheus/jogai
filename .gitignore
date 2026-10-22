@@ -30,3 +30,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# MCP config (contains secret tokens - never commit!)
+.agents/mcp_config.json
+
+# Environment variables
+.env
+.env.*
+!.env.example

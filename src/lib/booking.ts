@@ -6,6 +6,7 @@ export const STATUS_LABEL: Record<string, string> = {
   pendente: "Pendente",
   confirmada: "Confirmada",
   recusada: "Recusada",
+  cancelada: "Cancelada",
 };
 
 export function bookingTotal(precoHora: number, duracaoHoras: number): number {
