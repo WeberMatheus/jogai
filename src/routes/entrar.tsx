@@ -26,9 +26,15 @@ export const Route = createFileRoute("/entrar")({
   head: () => ({
     meta: [
       { title: "Entrar ou cadastrar — Jogaí" },
-      { name: "description", content: "Acesse sua conta Jogaí como jogador ou estabelecimento esportivo." },
+      {
+        name: "description",
+        content: "Acesse sua conta Jogaí como jogador ou estabelecimento esportivo.",
+      },
       { property: "og:title", content: "Entrar ou cadastrar — Jogaí" },
-      { property: "og:description", content: "Acesse sua conta Jogaí como jogador ou estabelecimento esportivo." },
+      {
+        property: "og:description",
+        content: "Acesse sua conta Jogaí como jogador ou estabelecimento esportivo.",
+      },
     ],
   }),
   component: AuthPage,
@@ -66,14 +72,22 @@ function AuthPage() {
         return void toast.error("E-mail ou senha incorretos (ou e-mail ainda não confirmado).");
       }
       toast.success("Bem-vindo de volta!");
-      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
-      const isEst = (roles ?? []).some((r) => r.role === "estabelecimento");
-      navigate({ to: redirect ?? (isEst ? "/painel" : "/") });
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.user.id);
+      const userRoles = (roles ?? []).map((r) => r.role);
+      const destination = userRoles.includes("admin")
+        ? "/admin"
+        : userRoles.includes("estabelecimento")
+          ? "/painel"
+          : "/";
+      navigate({ to: redirect ?? destination });
     } else {
       if (nome.trim().length < 2) {
         setLoading(false);
         return void toast.error(
-          tipo === "usuario" ? "Informe seu nome completo" : "Informe o nome do estabelecimento"
+          tipo === "usuario" ? "Informe seu nome completo" : "Informe o nome do estabelecimento",
         );
       }
       const { error } = await supabase.auth.signUp({
@@ -96,7 +110,8 @@ function AuthPage() {
       {/* Banner se veio do fluxo de reserva */}
       {isReservaRedirect && (
         <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/10 p-4 text-center text-sm font-medium text-foreground">
-          ⚽ <strong>Quase lá!</strong> Entre na sua conta ou crie uma rapidinho para solicitar a sua reserva.
+          ⚽ <strong>Quase lá!</strong> Entre na sua conta ou crie uma rapidinho para solicitar a
+          sua reserva.
         </div>
       )}
 
@@ -113,7 +128,8 @@ function AuthPage() {
               {modo === "entrar" ? "Acesse sua conta no Jogaí" : "Crie sua conta gratuita"}
             </h1>
             <p className="mt-2 text-muted-foreground">
-              A forma mais simples de conectar praticantes de esporte e donos de quadras, campos e piscinas.
+              A forma mais simples de conectar praticantes de esporte e donos de quadras, campos e
+              piscinas.
             </p>
           </div>
 
@@ -132,7 +148,8 @@ function AuthPage() {
                 <div>
                   <h2 className="font-bold text-sm">Perfil Jogador</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Busque espaços esportivos na cidade, compare preços e solicite reservas sem taxas.
+                    Busque espaços esportivos na cidade, compare preços e solicite reservas sem
+                    taxas.
                   </p>
                 </div>
               </div>
@@ -152,7 +169,8 @@ function AuthPage() {
                 <div>
                   <h2 className="font-bold text-sm">Perfil Estabelecimento</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Cadastre suas quadras e campos, divulgue horários e receba solicitações direto no seu painel.
+                    Cadastre suas quadras e campos, divulgue horários e receba solicitações direto
+                    no seu painel.
                   </p>
                 </div>
               </div>
@@ -177,7 +195,9 @@ function AuthPage() {
                 </div>
                 <h2 className="text-2xl font-extrabold">Confira seu e-mail</h2>
                 <p className="text-muted-foreground max-w-sm mx-auto text-sm leading-relaxed">
-                  Enviamos um link de confirmação para <strong className="text-foreground">{email}</strong>. Clique no link para ativar sua conta e entrar.
+                  Enviamos um link de confirmação para{" "}
+                  <strong className="text-foreground">{email}</strong>. Clique no link para ativar
+                  sua conta e entrar.
                 </p>
                 <div className="pt-2">
                   <Button
@@ -200,7 +220,9 @@ function AuthPage() {
                     type="button"
                     onClick={() => setModo("entrar")}
                     className={`rounded-full py-2 transition ${
-                      modo === "entrar" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      modo === "entrar"
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     Entrar
@@ -209,7 +231,9 @@ function AuthPage() {
                     type="button"
                     onClick={() => setModo("cadastrar")}
                     className={`rounded-full py-2 transition ${
-                      modo === "cadastrar" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      modo === "cadastrar"
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     Criar conta
@@ -259,7 +283,9 @@ function AuthPage() {
                           id="auth-nome"
                           value={nome}
                           onChange={(e) => setNome(e.target.value)}
-                          placeholder={tipo === "usuario" ? "Ex.: Carlos Eduardo" : "Ex.: Arena Gol & Bola"}
+                          placeholder={
+                            tipo === "usuario" ? "Ex.: Carlos Eduardo" : "Ex.: Arena Gol & Bola"
+                          }
                           maxLength={100}
                           className="mt-1 h-11 rounded-2xl"
                         />
@@ -307,7 +333,11 @@ function AuthPage() {
                         className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         aria-label={mostrarSenha ? "Ocultar senha" : "Exibir senha"}
                       >
-                        {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {mostrarSenha ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>

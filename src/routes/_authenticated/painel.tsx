@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -22,20 +21,40 @@ export const Route = createFileRoute("/_authenticated/painel")({
       { title: "Painel do estabelecimento — Jogaí" },
       { name: "description", content: "Gerencie seus espaços e as solicitações de reserva." },
       { property: "og:title", content: "Painel do estabelecimento — Jogaí" },
-      { property: "og:description", content: "Gerencie seus espaços e as solicitações de reserva." },
+      {
+        property: "og:description",
+        content: "Gerencie seus espaços e as solicitações de reserva.",
+      },
     ],
   }),
   component: Painel,
 });
 
 type Space = {
-  id: string; nome: string; descricao: string; endereco: string; bairro: string; modalidade: string;
-  preco_hora: number; comodidades: string[]; fotos: string[]; regras: string; publicado: boolean;
+  id: string;
+  nome: string;
+  descricao: string;
+  endereco: string;
+  bairro: string;
+  modalidade: string;
+  preco_hora: number;
+  comodidades: string[];
+  fotos: string[];
+  regras: string;
+  publicado: boolean;
 };
 
 const empty: Omit<Space, "id"> = {
-  nome: "", descricao: "", endereco: "", bairro: "", modalidade: "", preco_hora: 0,
-  comodidades: [], fotos: [], regras: "", publicado: false,
+  nome: "",
+  descricao: "",
+  endereco: "",
+  bairro: "",
+  modalidade: "",
+  preco_hora: 0,
+  comodidades: [],
+  fotos: [],
+  regras: "",
+  publicado: false,
 };
 
 function Painel() {
@@ -48,7 +67,11 @@ function Painel() {
     queryKey: ["my-spaces", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("spaces").select("*").eq("owner_id", user!.id).order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("spaces")
+        .select("*")
+        .eq("owner_id", user!.id)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Space[];
     },
@@ -81,7 +104,9 @@ function Painel() {
         <div className="text-center">
           <div className="mb-3 text-5xl">🔒</div>
           <p className="font-display text-lg font-bold">Acesso restrito</p>
-          <p className="mt-1 text-sm text-muted-foreground">Este painel é exclusivo para contas de estabelecimento.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Este painel é exclusivo para contas de estabelecimento.
+          </p>
         </div>
       </div>
     );
@@ -154,7 +179,9 @@ function Painel() {
           ) : (
             (requests.data ?? []).map((r) => {
               const dataFormatada = new Date(r.data + "T00:00").toLocaleDateString("pt-BR", {
-                weekday: "short", day: "numeric", month: "short",
+                weekday: "short",
+                day: "numeric",
+                month: "short",
               });
               return (
                 <div
@@ -174,7 +201,9 @@ function Painel() {
                           {r.horario.slice(0, 5)} · {r.duracao_horas}h
                         </span>
                         <span className="font-display font-bold text-foreground">
-                          {formatBRL(bookingTotal(Number(r.spaces?.preco_hora ?? 0), r.duracao_horas))}
+                          {formatBRL(
+                            bookingTotal(Number(r.spaces?.preco_hora ?? 0), r.duracao_horas),
+                          )}
                         </span>
                       </div>
                       <div className="mt-1.5 flex flex-wrap gap-3 text-sm">
@@ -253,17 +282,27 @@ function Painel() {
                       </div>
                     ))
                   : (spaces.data ?? []).map((s) => (
-                      <div key={s.id} className="flex items-center justify-between rounded-3xl border bg-card p-4 transition hover:shadow-card">
+                      <div
+                        key={s.id}
+                        className="flex items-center justify-between rounded-3xl border bg-card p-4 transition hover:shadow-card"
+                      >
                         <div>
                           <p className="font-display font-bold">{s.nome}</p>
                           <p className="text-sm text-muted-foreground">
                             {s.modalidade} · {formatBRL(Number(s.preco_hora))}/h ·{" "}
-                            <span className={s.publicado ? "text-success" : "text-muted-foreground"}>
+                            <span
+                              className={s.publicado ? "text-success" : "text-muted-foreground"}
+                            >
                               {s.publicado ? "Publicado" : "Rascunho"}
                             </span>
                           </p>
                         </div>
-                        <Button size="icon" variant="ghost" onClick={() => setEditing(s)} aria-label={`Editar ${s.nome}`}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => setEditing(s)}
+                          aria-label={`Editar ${s.nome}`}
+                        >
                           <Pencil />
                         </Button>
                       </div>
@@ -286,15 +325,22 @@ function Painel() {
   );
 }
 
-function SpaceForm({ initial, onDone }: { initial: Omit<Space, "id"> & { id?: string }; onDone: () => void }) {
+function SpaceForm({
+  initial,
+  onDone,
+}: {
+  initial: Omit<Space, "id"> & { id?: string };
+  onDone: () => void;
+}) {
   const { user } = useAuth();
   const [f, setF] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const previews = usePhotos(f.fotos);
 
-  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setF({ ...f, [k]: e.target.value });
+  const set =
+    (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setF({ ...f, [k]: e.target.value });
 
   async function upload(files: FileList | null) {
     if (!files || !user) return;
@@ -327,7 +373,11 @@ function SpaceForm({ initial, onDone }: { initial: Omit<Space, "id"> & { id?: st
   }
 
   return (
-    <form onSubmit={save} className="space-y-5 rounded-3xl border bg-card p-5" aria-label="Formulário de espaço">
+    <form
+      onSubmit={save}
+      className="space-y-5 rounded-3xl border bg-card p-5"
+      aria-label="Formulário de espaço"
+    >
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">{f.id ? "Editar espaço" : "Novo espaço"}</h2>
         <Button type="button" variant="ghost" size="icon" onClick={onDone} aria-label="Fechar">
@@ -339,13 +389,32 @@ function SpaceForm({ initial, onDone }: { initial: Omit<Space, "id"> & { id?: st
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor="esp-nome">Nome do espaço *</Label>
-          <Input id="esp-nome" value={f.nome} onChange={set("nome")} placeholder="Ex.: Quadra do Parque" />
+          <Input
+            id="esp-nome"
+            value={f.nome}
+            onChange={set("nome")}
+            placeholder="Ex.: Quadra do Parque"
+          />
         </div>
         <div>
           <Label htmlFor="esp-modalidade">Modalidade *</Label>
-          <Input id="esp-modalidade" value={f.modalidade} onChange={set("modalidade")} placeholder="Futsal, Tênis, Natação…" />
+          <Input
+            id="esp-modalidade"
+            value={f.modalidade}
+            onChange={set("modalidade")}
+            placeholder="Futsal, Tênis, Natação…"
+          />
           <div className="mt-1.5 flex flex-wrap gap-1">
-            {["Futsal", "Society", "Tênis", "Basquete", "Vôlei", "Beach Tennis", "Natação", "Padel"].map((m) => (
+            {[
+              "Futsal",
+              "Society",
+              "Tênis",
+              "Basquete",
+              "Vôlei",
+              "Beach Tennis",
+              "Natação",
+              "Padel",
+            ].map((m) => (
               <button
                 type="button"
                 key={m}
@@ -359,32 +428,50 @@ function SpaceForm({ initial, onDone }: { initial: Omit<Space, "id"> & { id?: st
         </div>
         <div>
           <Label htmlFor="esp-endereco">Endereço completo *</Label>
-          <Input id="esp-endereco" value={f.endereco} onChange={set("endereco")} placeholder="Rua, número" />
+          <Input
+            id="esp-endereco"
+            value={f.endereco}
+            onChange={set("endereco")}
+            placeholder="Rua, número"
+          />
         </div>
         <div>
           <Label htmlFor="esp-bairro">Bairro *</Label>
-          <Input id="esp-bairro" value={f.bairro} onChange={set("bairro")} placeholder="Nome do bairro" />
+          <Input
+            id="esp-bairro"
+            value={f.bairro}
+            onChange={set("bairro")}
+            placeholder="Nome do bairro"
+          />
         </div>
         <div>
           <Label htmlFor="esp-preco">Preço por hora (R$) *</Label>
-          <Input id="esp-preco" type="number" min={0} step="0.01" value={f.preco_hora} onChange={set("preco_hora")} />
-        </div>
-        <div className="flex items-end gap-3 pb-2">
-          <Switch
-            id="esp-publicado"
-            checked={f.publicado}
-            onCheckedChange={(v) => setF({ ...f, publicado: v })}
+          <Input
+            id="esp-preco"
+            type="number"
+            min={0}
+            step="0.01"
+            value={f.preco_hora}
+            onChange={set("preco_hora")}
           />
-          <Label htmlFor="esp-publicado" className="cursor-pointer">
-            {f.publicado ? "✅ Publicado na busca" : "⏸️ Rascunho (não visível)"}
-          </Label>
         </div>
+        <p className="self-center text-sm text-muted-foreground">
+          {f.publicado
+            ? "Este espaço está publicado. Alterações de publicação são feitas pela administração."
+            : "Este espaço ficará como rascunho até ser aprovado pela administração."}
+        </p>
       </div>
 
       {/* Descrição */}
       <div>
         <Label htmlFor="esp-descricao">Descrição</Label>
-        <Textarea id="esp-descricao" value={f.descricao} onChange={set("descricao")} placeholder="Descreva o espaço, diferenciais, estrutura…" rows={3} />
+        <Textarea
+          id="esp-descricao"
+          value={f.descricao}
+          onChange={set("descricao")}
+          placeholder="Descreva o espaço, diferenciais, estrutura…"
+          rows={3}
+        />
       </div>
 
       {/* Regras e horários */}
@@ -395,7 +482,9 @@ function SpaceForm({ initial, onDone }: { initial: Omit<Space, "id"> & { id?: st
           value={f.regras}
           onChange={set("regras")}
           rows={4}
-          placeholder={"Ex.:\nHorário de funcionamento: Seg–Sex 8h–22h, Sáb 8h–18h\nPagamento: pix ou dinheiro no local\nCancelamento: até 24h antes sem custo"}
+          placeholder={
+            "Ex.:\nHorário de funcionamento: Seg–Sex 8h–22h, Sáb 8h–18h\nPagamento: pix ou dinheiro no local\nCancelamento: até 24h antes sem custo"
+          }
         />
         <p className="mt-1 text-xs text-muted-foreground">
           Informe horários de funcionamento, forma de pagamento e política de cancelamento.
@@ -415,9 +504,7 @@ function SpaceForm({ initial, onDone }: { initial: Omit<Space, "id"> & { id?: st
                 onClick={() =>
                   setF({
                     ...f,
-                    comodidades: on
-                      ? f.comodidades.filter((x) => x !== c)
-                      : [...f.comodidades, c],
+                    comodidades: on ? f.comodidades.filter((x) => x !== c) : [...f.comodidades, c],
                   })
                 }
                 aria-pressed={on}
@@ -461,7 +548,9 @@ function SpaceForm({ initial, onDone }: { initial: Omit<Space, "id"> & { id?: st
           disabled={uploading}
           aria-label="Enviar fotos do espaço"
         />
-        {uploading && <p className="mt-1 text-xs text-muted-foreground animate-pulse">Enviando fotos…</p>}
+        {uploading && (
+          <p className="mt-1 text-xs text-muted-foreground animate-pulse">Enviando fotos…</p>
+        )}
       </div>
 
       <div className="flex gap-3">
