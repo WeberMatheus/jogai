@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Role = "usuario" | "estabelecimento";
+export type Role = "usuario" | "estabelecimento" | "admin";
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
@@ -29,7 +29,13 @@ export function useAuth() {
       .eq("user_id", session.user.id)
       .then(({ data }) => {
         const roles = (data ?? []).map((r) => r.role);
-        setRole(roles.includes("estabelecimento") ? "estabelecimento" : "usuario");
+        setRole(
+          roles.includes("admin")
+            ? "admin"
+            : roles.includes("estabelecimento")
+              ? "estabelecimento"
+              : "usuario",
+        );
       });
   }, [session]);
 

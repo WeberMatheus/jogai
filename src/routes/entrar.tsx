@@ -92,8 +92,13 @@ function AuthPage() {
         .from("user_roles")
         .select("role")
         .eq("user_id", data.user.id);
-      const isEst = (roles ?? []).some((r) => r.role === "estabelecimento");
-      navigate({ to: redirect ?? (isEst ? "/painel" : "/") });
+      const userRoles = (roles ?? []).map((r) => r.role);
+      const destination = userRoles.includes("admin")
+        ? "/admin"
+        : userRoles.includes("estabelecimento")
+          ? "/painel"
+          : "/";
+      navigate({ to: redirect ?? destination });
     } else {
       if (nome.trim().length < 2) {
         setLoading(false);

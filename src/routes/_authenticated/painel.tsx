@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -538,16 +537,11 @@ function SpaceForm({
             onChange={set("preco_hora")}
           />
         </div>
-        <div className="flex items-end gap-3 pb-2">
-          <Switch
-            id="esp-publicado"
-            checked={f.publicado}
-            onCheckedChange={(v) => setF({ ...f, publicado: v })}
-          />
-          <Label htmlFor="esp-publicado" className="cursor-pointer">
-            {f.publicado ? "✅ Publicado na busca" : "⏸️ Rascunho (não visível)"}
-          </Label>
-        </div>
+        <p className="self-center text-sm text-muted-foreground">
+          {f.publicado
+            ? "Este espaço está publicado. Alterações de publicação são feitas pela administração."
+            : "Este espaço ficará como rascunho até ser aprovado pela administração."}
+        </p>
       </div>
 
       {/* Descrição */}

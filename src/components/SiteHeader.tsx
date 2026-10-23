@@ -1,11 +1,20 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Menu, X, LayoutDashboard, ClipboardList, LogOut, LogIn } from "lucide-react";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  ClipboardList,
+  LogOut,
+  LogIn,
+  ShieldCheck,
+  Trophy,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import logo from "@/assets/jogai-logo.jpg.asset.json";
+import logo from "@/assets/jogai-logo.png";
 
 export function SiteHeader() {
   const { user, role } = useAuth();
@@ -30,7 +39,7 @@ export function SiteHeader() {
             to="/"
             className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime rounded-xl"
           >
-            <img src={logo.url} alt="Jogaí" className="h-11 w-11 rounded-xl object-cover" />
+            <img src={logo} alt="Jogaí" className="h-11 w-11 rounded-xl object-cover" />
             <span className="font-display text-xl font-extrabold tracking-tight">Jogaí</span>
           </Link>
 
@@ -39,9 +48,25 @@ export function SiteHeader() {
             className="hidden items-center gap-1 text-sm sm:flex"
             aria-label="Navegação principal"
           >
+            <Link
+              to="/partidas"
+              className="flex items-center gap-1.5 rounded-full px-3 py-2 font-medium transition hover:bg-ink-foreground/10 [&.active]:bg-ink-foreground/10"
+            >
+              <Trophy className="h-4 w-4" />
+              Partidas
+            </Link>
             {user ? (
               <>
-                {role === "estabelecimento" ? (
+                {role === "admin" ? (
+                  <Link
+                    to="/admin"
+                    className="flex items-center gap-1.5 rounded-full px-3 py-2 font-medium transition hover:bg-ink-foreground/10 [&.active]:bg-ink-foreground/10"
+                    aria-label="Administração"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    Administração
+                  </Link>
+                ) : role === "estabelecimento" ? (
                   <Link
                     to="/painel"
                     className="flex items-center gap-1.5 rounded-full px-3 py-2 font-medium transition hover:bg-ink-foreground/10 [&.active]:bg-ink-foreground/10"
@@ -94,20 +119,33 @@ export function SiteHeader() {
 
       {/* Drawer mobile */}
       {open && (
-        <div
-          className="fixed inset-0 z-20 sm:hidden"
-          onClick={() => setOpen(false)}
-          aria-hidden="true"
-        >
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+        <div className="fixed inset-0 z-20 sm:hidden" onClick={() => setOpen(false)}>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
           <nav
             className="absolute right-0 top-[60px] flex h-[calc(100vh-60px)] w-72 flex-col gap-1 bg-ink p-4 shadow-2xl"
             aria-label="Menu mobile"
             onClick={(e) => e.stopPropagation()}
           >
+            <Link
+              to="/partidas"
+              className="flex items-center gap-3 rounded-2xl px-4 py-3 font-medium transition hover:bg-ink-foreground/10"
+              onClick={() => setOpen(false)}
+            >
+              <Trophy className="h-5 w-5 text-lime" />
+              Partidas abertas
+            </Link>
             {user ? (
               <>
-                {role === "estabelecimento" ? (
+                {role === "admin" ? (
+                  <Link
+                    to="/admin"
+                    className="flex items-center gap-3 rounded-2xl px-4 py-3 font-medium transition hover:bg-ink-foreground/10"
+                    onClick={() => setOpen(false)}
+                  >
+                    <ShieldCheck className="h-5 w-5 text-lime" />
+                    Administração
+                  </Link>
+                ) : role === "estabelecimento" ? (
                   <Link
                     to="/painel"
                     className="flex items-center gap-3 rounded-2xl px-4 py-3 font-medium transition hover:bg-ink-foreground/10"

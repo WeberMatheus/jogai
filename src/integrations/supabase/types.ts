@@ -153,7 +153,7 @@ export type Database = {
       };
     };
     Enums: {
-      app_role: "usuario" | "estabelecimento";
+      app_role: "usuario" | "estabelecimento" | "admin";
       booking_status: "pendente" | "confirmada" | "recusada";
     };
     CompositeTypes: {
@@ -276,7 +276,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["usuario", "estabelecimento"],
+      app_role: ["usuario", "estabelecimento", "admin"],
       booking_status: ["pendente", "confirmada", "recusada"],
     },
   },

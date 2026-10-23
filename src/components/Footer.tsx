@@ -57,6 +57,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/partidas" className="transition hover:text-lime">
+                  Partidas abertas
+                </Link>
+              </li>
+              <li>
                 <Link to="/entrar" className="transition hover:text-lime">
                   Entrar
                 </Link>
